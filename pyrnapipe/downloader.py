@@ -34,6 +34,8 @@ def download_gsm(gsm):
 	subprocess.call(download2, shell=True)
 	f = open("{}.soft".format(gsm), "r")
 	lines = f.readlines()
+	extract_info = ""
+	growth_info = ""
 	os.remove("{}.soft".format(gsm))
 	for line in lines:
 		line = line.rstrip()
@@ -46,11 +48,15 @@ def download_gsm(gsm):
 				genome = "hg19"
 			elif line == "Mus musculus":
 				genome = "mm10"
-		if line.startswith("!Sample_extract_protocol_ch1 = "):
-			extract_info = line.lstrip("!Sample_organism_ch1 = ")
-		elif line.startswith("!Sample_growth_protocol_ch1 = "):
+		
+		if line.startswith("!Sample_extract_protocol_ch1"):
+			extract_info = line.lstrip("!Sample_extract_protocol_ch1 = ")
+			extract_info = extract_info.rstrip()
+		elif line.startswith("!Sample_growth_protocol_ch1"):
 			growth_info = line.lstrip("!Sample_growth_protocol_ch1 = ")
-		details = extract_info + ":::" + growth_info
+			growth_info = growth_info.rstrip()
+	details = extract_info + growth_info
+	
 	if not os.path.isdir(gse):
 		os.mkdir(gse)
 	gsm_path = "{}/{}".format(gse, gsm)
