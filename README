@@ -1,0 +1,17 @@
+Combining pyrnatools with a custom pipeline for a new compendium
+Need to create simple sqlite database for required information and easy display to website
+
+1. Download from GEO one at a time
+2. Run infer_experiment.py for finding experiment type
+3. Pyrnatools takes over here:
+	1. FASTQC
+	2. Cutadapt if necessary
+	3. Tophat2
+	4. Select uniquely mapped reads
+	5. Convert to BED 
+	6. Convert to bw
+	7. Count genes
+4. Delete unnecessary files
+5. Upload useful files to tobias so they can be displayed on website
+6. Assess quality of experiment?
+7. Update database
