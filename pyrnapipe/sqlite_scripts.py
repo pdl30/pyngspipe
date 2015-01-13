@@ -60,10 +60,10 @@ def insert_data(pkg_path, gsm_dict):
 def print_database(pkg_path):
 	con = None
 	try:
-		if os.path.isfile(pkg_path + "/GEO_samples.db"):
-			con = lite.connect(pkg_path + "/GEO_samples.db")
-		else:
-			create_database(pkg_path)
+	#	if os.path.isfile(pkg_path + "/GEO_samples.db"):
+		con = lite.connect(pkg_path + "/GEO_samples.db")
+	#	else:
+	#		create_database(pkg_path)
 		with con:
 			cur = con.cursor()
 			cur.execute("SELECT * FROM Samples")
@@ -104,17 +104,19 @@ def main():
 	parser = argparse.ArgumentParser(description='Sqlite scripts for use with pyrnapipe\n')
 	parser.add_argument('-c', help='Create a database', action='store_true')
 	parser.add_argument('-t', help='Test insert', action='store_true')
+	parser.add_argument('-p', help='Print database', action='store_true')
 	if len(sys.argv)==1:
 		parser.print_help()
 		sys.exit(1)
 	args = vars(parser.parse_args())
-	pkg_path = pkg_resources.resource_filename('pyrnapipe', '/')
+	sqlite_database = "/home/patrick/Scripts/pyrnapipe/database/"
 	if args["c"]:
-		create_database(pkg_path)
-	if args["t"]:
+		create_database(sqlite_database)
+	elif args["t"]:
 		date = time.strftime("%d/%m/%Y")
 		gsm_dict = {"GSM11111": {"details": "not important", "srx": "SRX/SRX000", "paired": True, "genome": "mm10", "gse":"GSE1000", 
 			"aligner": "tophat", "date": date, "report": "useless", "submitter": "ME"}}
-		insert_data(pkg_path, gsm_dict)
-		print_database(pkg_path)
+		insert_data(sqlite_database, gsm_dict)
+	elif args["p"]:
+		print_database(sqlite_database)
 	#	print_schmena(pkg_path)

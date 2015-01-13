@@ -23,7 +23,12 @@ def cleanup(gse, gsm):
 	if os.path.isdir("{}/{}/tmp".format(gse, gsm)):
 		shutil.rmtree("{}/{}/tmp".format(gse, gsm))
 	if os.path.isdir("{}/{}/logs".format(gse, gsm)):
-		shutil.rmtree("{}/{}/logs".format(gse, gsm))	
+		shutil.rmtree("{}/{}/logs".format(gse, gsm))
+	useless_files = ["prep_reads.info", "tophat_report.txt", "unmapped.bam"]
+	for ufile in useless_files:
+		if os.path.isfile("{}/{}/{}".format(gse, gsm, ufile)):
+			os.remove("{}/{}/{}".format(gse, gsm, ufile))
+
 
 def get_paths(path1, genome):
 	if genome == "hg19":
@@ -42,11 +47,11 @@ def process_gsm(paired, gse, gsm, gtf, bowtie_ref, refbed):
 		fastq2 = "{0}/{1}/{1}_2.fastq".format(gse, gsm)
 		tools.infer_experiment(fastq1, fastq2, bowtie_ref, refbed)
 		tools.paired_process(fastq1, fastq2, gse, gsm, bowtie_ref, gtf)
-		cleanup(gse, gsm, fastq1, fastq2)
+		cleanup(gse, gsm)
 	else:
 		fastq = "{0}/{1}/{1}.fastq".format(gse, gsm)
 		tools.single_process(fastq, gse, gsm, bowtie_ref, gtf)
-		cleanup(gse, gsm, fastq)
+		cleanup(gse, gsm)
 
 def read_alignment_report(gse, gsm):
 	align_file = "{}/{}/align_summary.txt".format(gse, gsm)
