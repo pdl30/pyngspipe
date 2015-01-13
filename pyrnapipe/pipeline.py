@@ -45,8 +45,8 @@ def process_gsm(paired, gse, gsm, gtf, bowtie_ref, refbed):
 	if paired:
 		fastq1 = "{0}/{1}/{1}_1.fastq".format(gse, gsm)
 		fastq2 = "{0}/{1}/{1}_2.fastq".format(gse, gsm)
-		tools.infer_experiment(fastq1, fastq2, bowtie_ref, refbed)
-		tools.paired_process(fastq1, fastq2, gse, gsm, bowtie_ref, gtf)
+		reverse, insert = tools.infer_experiment(fastq1, fastq2, bowtie_ref, refbed)
+		tools.paired_process(fastq1, fastq2, gse, gsm, bowtie_ref, gtf, reverse, insert)
 		cleanup(gse, gsm)
 	else:
 		fastq = "{0}/{1}/{1}.fastq".format(gse, gsm)

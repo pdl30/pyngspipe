@@ -29,13 +29,29 @@ def infer_experiment(fastq1, fastq2, bowtie_ref, refbed):
 		os.mkdir("tmp")
 	head_file(fastq1, "tmp/infer_test_1.fq", 1000000)
 	head_file(fastq2, "tmp/infer_test_2.fq", 1000000)
-	align_command = " bowtie2 -x {} -1 tmp/infer_test_1.fq -2 tmp/infer_test_2.fq -S tmp/tmp.sam".format(bowtie_ref)
+	align_command = "bowtie2 -x {} -1 tmp/infer_test_1.fq -2 tmp/infer_test_2.fq -S tmp/tmp.sam".format(bowtie_ref)
 	subprocess.call(align_command.split())
 	infercommand = "infer_experiment.py -i tmp/tmp.sam -r {} > tmp/infer_res.txt".format(refbed)
+	insertcommand = "inner_distance.py -i tmp/tmp.sam -o tmp/insert_sizes -r {} > tmp/insert_res.txt".format(refbed)
 	subprocess.call(infercommand, shell=True)
+	subprocess.call(insertcommand, shell=True)
 	reverse = read_infer()
+	insert = read_insert() #Not tested
 	shutil.rmtree("tmp")
-	return reverse
+	return reverse, insert
+
+def read_insert():
+	insert = []
+	with open("tmp/insert_res.txt") as f:
+		c = 0
+		for line in f:
+			line = line.rstrip()
+			if c = 1:
+				insert.append(float(line))
+			elif c = 5:
+				insert.append(float(line))
+			c += 1
+	return insert
 
 def read_infer():
 	with open("tmp/infer_res.txt") as f:
@@ -51,9 +67,9 @@ def read_infer():
 		reverse = True
 	return reverse
 
-def paired_process(fastq1, fastq2, gse, gsm, bowtie_ref, gtf, reverse):
+def paired_process(fastq1, fastq2, gse, gsm, bowtie_ref, gtf, reverse, insert):
 	#Need to look at insert size as well! Add that to infer_experiment?
-	align_command = "pyrna_align.py tophat -p {} {} -i {} -g {} -t 2 -o {}/{}".format(fastq1, fastq2, bowtie_ref, gtf, gse, gsm)
+	align_command = "pyrna_align.py tophat -p {} {} -i {} -g {} -t 2 -o {}/{} -a {} -b {}".format(fastq1, fastq2, bowtie_ref, gtf, gse, gsm, insert[0], insert[1])
 	subprocess.call(align_command.split())
 	#toucsc = "pyrna_ucsc.py -i {}/{}/accepted_hits.bam -g hg19 -ens".format(gse, gsm)
 	#subprocess.call(toucsc.split())
