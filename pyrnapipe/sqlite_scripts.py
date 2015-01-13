@@ -100,7 +100,7 @@ def print_schmena(pkg_path):
 		if con:
 			con.close() 
 
-def main():
+if __name__ == "__main__":
 	parser = argparse.ArgumentParser(description='Sqlite scripts for use with pyrnapipe\n')
 	parser.add_argument('-c', help='Create a database', action='store_true')
 	parser.add_argument('-t', help='Test insert', action='store_true')

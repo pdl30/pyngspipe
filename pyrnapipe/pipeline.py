@@ -93,7 +93,7 @@ def main():
 	args = vars(parser.parse_args())
 	
 	path1 = pkg_resources.resource_filename('pyrnapipe', 'data/')
-	pkg_path = pkg_resources.resource_filename('pyrnapipe', '/')
+	sqlite_database = "/home/patrick/Scripts/pyrnapipe/database/"
 	gsm_dict = {}
 
 	if args["GSE"]:
@@ -103,11 +103,11 @@ def main():
 			bowtie_ref, gtf, refbed = get_paths(path1, genome)
 			process_gsm(paired, gse, gsm, gtf, bowtie_ref, refbed)
 			create_gsm_dict(gsm_dict, gse, args["GSM"], details, sra, genome, "tophat2","PATRICK")
-			insert_data(pkg_path, gsm_dict) #Updating dictionary
+			insert_data(sqlite_database, gsm_dict) #Updating dictionary
 
 	elif args["GSM"]:
 		gse, genome, paired, details, sra = downloader.download_gsm(args["GSM"]) 
 		bowtie_ref, gtf, refbed = get_paths(path1, genome)
 		process_gsm(paired, gse, args["GSM"], gtf, bowtie_ref, refbed)
 		create_gsm_dict(gsm_dict, gse, args["GSM"], details, sra, genome, "tophat2","PATRICK")
-		insert_data(pkg_path, gsm_dict)
+		insert_data(sqlite_database, gsm_dict)
