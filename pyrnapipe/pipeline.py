@@ -86,7 +86,7 @@ def main():
 	parser = argparse.ArgumentParser(description='Pyrnapipe is a RNA-seq pipeline. \n')
 	parser.add_argument('-g', '--GSE', help='GSE accession for processing. Will try all samples in the accession', required=False)
 	parser.add_argument('-m', '--GSM', help='Individual GSM samples for processing', required=False)
-	parser.add_argument('-d', '--db', help='Sqlite_database file which will be updated with sample information', required=False)
+	parser.add_argument('-d', '--db', help='Optional Sqlite database file which will be updated with sample information.', required=False)
 	if len(sys.argv)==1:
 		parser.print_help()
 		sys.exit(1)
