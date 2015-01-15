@@ -51,7 +51,7 @@ def rnaseq_process_gsm(paired, gse, gsm, gtf, bowtie_ref, refbed, threads):
 		gzip(fastq2)
 	else:
 		fastq = "{0}/{1}/{1}.fastq".format(gse, gsm)
-		tools.single_rnaseq_process(fastq, gse, gsm, bowtie_ref, gtf)
+		tools.single_rnaseq_process(fastq, gse, gsm, bowtie_ref, gtf, threads)
 		rnacleanup(gse, gsm)
 		gzip(fastq)
 
