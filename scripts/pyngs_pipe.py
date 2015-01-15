@@ -8,5 +8,5 @@
 # All right reserved.
 ########################################################################
 
-import pyrnapipe.pipeline
-pyrnapipe.pipeline.main()
+import pyngspipe.pipeline
+pyngspipe.pipeline.main()

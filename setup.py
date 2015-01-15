@@ -1,13 +1,13 @@
 import os
 from setuptools import setup, find_packages
 
-setup(name='pyrnapipe',
+setup(name='pyngspipe',
       version='0.0.1',
-      description='pyrnapipe is a pipeline for processing GEO RNA-seq datasets based on the pyrnatools package',
+      description='pyngspipe is a pipeline for processing GEO NGS datasets based on the pyrnatools/pychiptools packages',
       author='Patrick Lombard',
       author_email='ptk.lmb55@gmail.com',
       packages=find_packages(),
-      package_data={"pyrnapipe":['data/*']},
+      package_data={"pyngspipe":['data/*']},
       scripts=['scripts/pyngs_pipe.py'],
       install_requires=['pysam', 'pybedtools'],
       license='GPLv3',
@@ -20,12 +20,12 @@ setup(name='pyrnapipe',
       ],
       long_description="""
 
-pyrnapipe is a pipeline for processing GEO RNA-seq datasets based on the pyrnatools package
+pyngspipe is a pipeline for processing GEO NGS datasets based on the pyrnatools/pychiptools packages
 
  Contact
 =============
 
-If you have any questions or comments about pyrnapipe, please feel free to contact me via
+If you have any questions or comments about pyngspipe, please feel free to contact me via
 eMail: ptk.lmb55@gmail.com
 
 """,
