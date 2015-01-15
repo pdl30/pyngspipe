@@ -29,7 +29,6 @@ def cleanup(gse, gsm):
 		if os.path.isfile("{}/{}/{}".format(gse, gsm, ufile)):
 			os.remove("{}/{}/{}".format(gse, gsm, ufile))
 
-
 def get_paths(path1, genome):
 	if genome == "hg19":
 		bowtie_ref = "/home/patrick/Reference_Genomes/pyrnapipe_references/hg19/hg19"
@@ -69,45 +68,46 @@ def gzip(ifile):
 		subprocess.call(command.split())
 
 def create_gsm_dict(gsm_dict, GSE, GSM, details, srx, genome, aligner, submitter):
-	gsm_dict[gsm] = {}
+	gsm_dict[GSM] = {}
 	date = time.strftime("%d/%m/%Y")
-	alignment_report = read_alignment_report(gse, gsm)
-	gsm_dict[gsm]["gse"] = GSE
-	gsm_dict[gsm]["details"] = details
-	gsm_dict[gsm]["srx"] = srx
-	gsm_dict[gsm]["genome"] = genome
-	gsm_dict[gsm]["aligner"] = aligner
-	gsm_dict[gsm]["completion_date"] = date
-	gsm_dict[gsm]["alignment_report"] = alignment_report
-	gsm_dict[gsm]["submitter"] = submitter
-	gsm_dict[gsm]["paired"] = paired
+	alignment_report = read_alignment_report(GSE, GSM)
+	gsm_dict[GSM]["gse"] = GSE
+	gsm_dict[GSM]["details"] = details
+	gsm_dict[GSM]["srx"] = srx
+	gsm_dict[GSM]["genome"] = genome
+	gsm_dict[GSM]["aligner"] = aligner
+	gsm_dict[GSM]["completion_date"] = date
+	gsm_dict[GSM]["alignment_report"] = alignment_report
+	gsm_dict[GSM]["submitter"] = submitter
+	gsm_dict[GSM]["paired"] = paired
 	return gsm_dict
 
 def main():
 	parser = argparse.ArgumentParser(description='Pyrnapipe is a RNA-seq pipeline. \n')
 	parser.add_argument('-g', '--GSE', help='GSE accession for processing. Will try all samples in the accession', required=False)
 	parser.add_argument('-m', '--GSM', help='Individual GSM samples for processing', required=False)
+	parser.add_argument('-d', '--db', help='Sqlite_database file which will be updated with sample information', required=False)
 	if len(sys.argv)==1:
 		parser.print_help()
 		sys.exit(1)
 	args = vars(parser.parse_args())
 	
-	path1 = pkg_resources.resource_filename('pyrnapipe', 'data/')
-	sqlite_database = "/home/patrick/Scripts/pyrnapipe/database/"
 	gsm_dict = {}
 
 	if args["GSE"]:
 		gsms = downloader.download_gse(args["GSE"])
-		for gsm in gsms:
+		for gsm in sorted(gsms):
 			gse, genome, paired, details, sra = downloader.download_gsm(gsm)
 			bowtie_ref, gtf, refbed = get_paths(path1, genome)
 			process_gsm(paired, gse, gsm, gtf, bowtie_ref, refbed)
-			create_gsm_dict(gsm_dict, gse, args["GSM"], details, sra, genome, "tophat2","PATRICK")
-			insert_data(sqlite_database, gsm_dict) #Updating dictionary
+			if args["db"]:
+				create_gsm_dict(gsm_dict, gse, args["GSM"], details, sra, genome, "tophat2","PATRICK")
+				sqlite_scripts.insert_data(args["db"], gsm_dict) #Updating dictionary
 
 	elif args["GSM"]:
 		gse, genome, paired, details, sra = downloader.download_gsm(args["GSM"]) 
 		bowtie_ref, gtf, refbed = get_paths(path1, genome)
 		process_gsm(paired, gse, args["GSM"], gtf, bowtie_ref, refbed)
-		create_gsm_dict(gsm_dict, gse, args["GSM"], details, sra, genome, "tophat2","PATRICK")
-		insert_data(sqlite_database, gsm_dict)
+		if args["db"]:
+			create_gsm_dict(gsm_dict, gse, args["GSM"], details, sra, genome, "tophat2","PATRICK")
+			sqlite_scripts.insert_data(args["db"], gsm_dict)

@@ -137,7 +137,6 @@ def get_insert(samfile):
 				plrdspan[dist]=1;
 		except ValueError:
 			continue;
-
 	if len(plrdspan)==0:
 		print('No qualified paired-end reads found. Are they single-end reads?');
 	else:
