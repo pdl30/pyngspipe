@@ -1,13 +1,20 @@
-This is a automated pipeline for RNA-seq processing samples from GEO based on my pyrnatools package. ChIP-seq processing may be added later.
+This is a automated pipeline for processing RNA-seq and ChIP-seq samples from GEO based on my pyrnatools and pychiptools packages.
 
 The pipeline is as follows:
 1. Download .soft file from GEO. This contains the sample information.
 2. Download SRA files
+If RNA-seq:
 3. Pyrnatools takes over here:
 	1. FASTQC
 	2. Cutadapt if necessary
 	3. Tophat2
 	4. Count genes
+And if ChIP-seq:
+3. Pychiptools will:	
+        1. FASTQC
+        2. Cutadapt if necessary
+        3. Bowtie1/Bowtie2 based on genomes
+        4. Make a bigWig
 4. Delete unnecessary files
 5. Upload useful files to webserver so they can be displayed on website #Not yet implemented
 6. Assess quality of experiment?
