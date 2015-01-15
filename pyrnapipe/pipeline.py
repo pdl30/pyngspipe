@@ -17,7 +17,7 @@ from pyrnapipe import tools, downloader, sqlite_scripts
 import pkg_resources
 import time
 
-def cleanup(gse, gsm):
+def rnacleanup(gse, gsm):
 	command = "mv {0}/{1}/accepted_hits.bam {0}/{1}/{1}.bam".format(gse, gsm)
 	subprocess.call(command.split())
 	if os.path.isdir("{}/{}/tmp".format(gse, gsm)):
@@ -40,20 +40,40 @@ def get_paths(path1, genome):
 		refbed = path1 + "mm10_Ensembl.bed"
 	return bowtie_ref, gtf, refbed
 
-def process_gsm(paired, gse, gsm, gtf, bowtie_ref, refbed):
+def rnaseq_process_gsm(paired, gse, gsm, gtf, bowtie_ref, refbed):
 	if paired:
 		fastq1 = "{0}/{1}/{1}_1.fastq".format(gse, gsm)
 		fastq2 = "{0}/{1}/{1}_2.fastq".format(gse, gsm)
 		reverse, insert = tools.infer_experiment(fastq1, fastq2, bowtie_ref, refbed)
-		tools.paired_process(fastq1, fastq2, gse, gsm, bowtie_ref, gtf, reverse, insert)
-		cleanup(gse, gsm)
+		tools.paired_rnaseq_process(fastq1, fastq2, gse, gsm, bowtie_ref, gtf, reverse, insert)
+		rnacleanup(gse, gsm)
 	else:
 		fastq = "{0}/{1}/{1}.fastq".format(gse, gsm)
-		tools.single_process(fastq, gse, gsm, bowtie_ref, gtf)
-		cleanup(gse, gsm)
+		tools.single_rnaseq_process(fastq, gse, gsm, bowtie_ref, gtf)
+		rnacleanup(gse, gsm)
 
-def read_alignment_report(gse, gsm):
+def chipseq_process_gsm(paired, gse, gsm, gtf, bowtie_ref, refbed):
+	if paired:
+		fastq1 = "{0}/{1}/{1}_1.fastq".format(gse, gsm)
+		fastq2 = "{0}/{1}/{1}_2.fastq".format(gse, gsm)
+		#reverse, insert = tools.infer_experiment(fastq1, fastq2, bowtie_ref, refbed)
+		tools.paired_chipseq_process(fastq, gse, gsm, bowtie_ref, genome)
+	else:
+		fastq = "{0}/{1}/{1}.fastq".format(gse, gsm)
+		tools.single_chipseq_process(fastq, gse, gsm, bowtie_ref, genome)
+
+def read_tophat_report(gse, gsm):
 	align_file = "{}/{}/align_summary.txt".format(gse, gsm)
+	data = None
+	if os.path.isfile(align_file):
+		align = open(align_file, "r")
+		lines = align.readlines()
+		if lines:
+			data = lines
+	return data
+
+def read_bowtie_report(gse, gsm):
+	align_file = "{0}/{1}/{1}_report.txt".format(gse, gsm)
 	data = None
 	if os.path.isfile(align_file):
 		align = open(align_file, "r")
@@ -67,15 +87,19 @@ def gzip(ifile):
 		command = "gzip {}".format(ifile)
 		subprocess.call(command.split())
 
-def create_gsm_dict(gsm_dict, GSE, GSM, details, srx, genome, aligner, submitter):
+def create_gsm_dict(gsm_dict, GSE, GSM, details, srx, genome, aligner, exp_type, submitter):
 	gsm_dict[GSM] = {}
 	date = time.strftime("%d/%m/%Y")
-	alignment_report = read_alignment_report(GSE, GSM)
+	if exp_type == "rnaseq":
+		alignment_report = read_tophat_report(GSE, GSM)
+	elif exp_type == "chipseq":
+		alignment_report = read_bowtie_report(GSE, GSM)
 	gsm_dict[GSM]["gse"] = GSE
 	gsm_dict[GSM]["details"] = details
 	gsm_dict[GSM]["srx"] = srx
 	gsm_dict[GSM]["genome"] = genome
 	gsm_dict[GSM]["aligner"] = aligner
+	gsm_dict[GSM]["exp_type"] = exp_type
 	gsm_dict[GSM]["completion_date"] = date
 	gsm_dict[GSM]["alignment_report"] = alignment_report
 	gsm_dict[GSM]["submitter"] = submitter
@@ -97,17 +121,27 @@ def main():
 	if args["GSE"]:
 		gsms = downloader.download_gse(args["GSE"])
 		for gsm in sorted(gsms):
-			gse, genome, paired, details, sra = downloader.download_gsm(gsm)
+			gse, genome, paired, details, sra, exp_type = downloader.download_gsm(gsm)
 			bowtie_ref, gtf, refbed = get_paths(path1, genome)
-			process_gsm(paired, gse, gsm, gtf, bowtie_ref, refbed)
+			if exp_type == "rnaseq":
+				rnaseq_process_gsm(paired, gse, gsm, gtf, bowtie_ref, refbed)
+			elif exp_type == "chipseq":
+				chipseq_process_gsm(paired, gse, gsm, gtf, bowtie_ref, refbed)
+			
 			if args["db"]:
-				create_gsm_dict(gsm_dict, gse, args["GSM"], details, sra, genome, "tophat2","PATRICK")
+				create_gsm_dict(gsm_dict, gse, args["GSM"], details, sra, genome, "tophat2", exp_type, "PATRICK")
 				sqlite_scripts.insert_data(args["db"], gsm_dict) #Updating dictionary
-
+				
 	elif args["GSM"]:
-		gse, genome, paired, details, sra = downloader.download_gsm(args["GSM"]) 
+		gse, genome, paired, details, sra, exp_type = downloader.download_gsm(args["GSM"]) 
 		bowtie_ref, gtf, refbed = get_paths(path1, genome)
-		process_gsm(paired, gse, args["GSM"], gtf, bowtie_ref, refbed)
+		if exp_type == "rnaseq":
+			rnaseq_process_gsm(paired, gse, args["GSM"], gtf, bowtie_ref, refbed)
+		elif exp_type == "chipseq":
+			chipseq_process_gsm(paired, gse, args["GSM"], gtf, bowtie_ref, refbed)
+
 		if args["db"]:
-			create_gsm_dict(gsm_dict, gse, args["GSM"], details, sra, genome, "tophat2","PATRICK")
+			create_gsm_dict(gsm_dict, gse, args["GSM"], details, sra, genome, "tophat2", exp_type, "PATRICK")
 			sqlite_scripts.insert_data(args["db"], gsm_dict)
+		
+

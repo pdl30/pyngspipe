@@ -24,7 +24,7 @@ def create_database(sqlite_db):
 		with con:
 			cur = con.cursor()   
 			cur.execute("DROP TABLE IF EXISTS Samples") 
-			cur.execute("CREATE TABLE Samples(Id INTEGER PRIMARY KEY AUTOINCREMENT, GSE TEXT, GSM TEXT, details TEXT, paired TEXT, srx TEXT, genome TEXT, aligner TEXT, completion_date TEXT, alignment_report TEXT, submitter TEXT)")
+			cur.execute("CREATE TABLE Samples(Id INTEGER PRIMARY KEY AUTOINCREMENT, GSE TEXT, GSM TEXT, details TEXT, paired TEXT, srx TEXT, genome TEXT, aligner TEXT, exp_type TEXT completion_date TEXT, alignment_report TEXT, submitter TEXT)")
 	except lite.Error, e:
 		if con:
 			con.rollback()
@@ -45,9 +45,9 @@ def insert_data(sqlite_db, gsm_dict):
 		with con:
 			cur = con.cursor()
 			for gsm in gsm_dict:
-				cur.execute("INSERT INTO Samples(GSE, GSM, details, paired, srx, genome, aligner, completion_date, alignment_report, submitter) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", 
-					(gsm_dict[gsm]["gse"], gsm, gsm_dict[gsm]["details"], gsm_dict[gsm]["paired"], gsm_dict[gsm]["srx"], gsm_dict[gsm]["genome"], gsm_dict[gsm]["aligner"], gsm_dict[gsm]["date"],
-						gsm_dict[gsm]["report"],gsm_dict[gsm]["submitter"]))
+				cur.execute("INSERT INTO Samples(GSE, GSM, details, paired, srx, genome, aligner, exp_type, completion_date, alignment_report, submitter) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", 
+					(gsm_dict[gsm]["gse"], gsm, gsm_dict[gsm]["details"], gsm_dict[gsm]["paired"], gsm_dict[gsm]["srx"], gsm_dict[gsm]["genome"], gsm_dict[gsm]["aligner"], gsm_dict[gsm]["exp_type"], 
+						gsm_dict[gsm]["date"], gsm_dict[gsm]["report"],gsm_dict[gsm]["submitter"]))
 			con.commit()
 	except lite.Error, e:
 		if con:

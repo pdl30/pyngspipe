@@ -48,6 +48,12 @@ def download_gsm(gsm):
 				genome = "hg19"
 			elif line == "Mus musculus":
 				genome = "mm10"
+		if line.startswith("!Sample_library_strategy = "):
+			line = line.lstrip("!Sample_library_strategy = ")
+			if line == "RNA-Seq":
+				exp_type = "rnaseq"
+			elif line == "ChIP-Seq":
+				exp_type = "chipseq"
 		
 		if line.startswith("!Sample_extract_protocol_ch1"):
 			extract_info = line.lstrip("!Sample_extract_protocol_ch1 = ")
@@ -74,7 +80,7 @@ def download_gsm(gsm):
 				download3 = "wget -r -c --no-verbose -N -nd ftp://ftp-trace.ncbi.nlm.nih.gov/sra/sra-instant/reads/ByExp/sra/{}".format(sra)
 				subprocess.call(download3, shell=True)
 	paired = combine_convert(old_path, gsm)
-	return gse, genome, paired, details, sra
+	return gse, genome, paired, details, sra, exp_type
 
 def combine_convert(old_path, gsm):
 	new_path = os.getcwd()

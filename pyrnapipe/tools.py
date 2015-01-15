@@ -39,19 +39,6 @@ def infer_experiment(fastq1, fastq2, bowtie_ref, refbed):
 	shutil.rmtree("tmp")
 	return reverse, insert
 
-def read_insert():
-	insert = []
-	with open("tmp/insert_res.txt") as f:
-		c = 0
-		for line in f:
-			line = line.rstrip()
-			if c == 1:
-				insert.append(float(line))
-			elif c == 5:
-				insert.append(float(line))
-			c += 1
-	return insert
-
 def read_infer():
 	with open("tmp/infer_res.txt") as f:
 		for line in f:
@@ -66,7 +53,7 @@ def read_infer():
 		reverse = True
 	return reverse
 
-def paired_process(fastq1, fastq2, gse, gsm, bowtie_ref, gtf, reverse, insert):
+def paired_rnaseq_process(fastq1, fastq2, gse, gsm, bowtie_ref, gtf, reverse, insert):
 	#Need to look at insert size as well! Add that to infer_experiment?
 	align_command = "pyrna_align.py tophat -p {} {} -i {} -g {} -t 2 -o {}/{} -a {} -b {}".format(fastq1, fastq2, bowtie_ref, gtf, gse, gsm, insert[0], insert[1])
 	subprocess.call(align_command.split())
@@ -78,13 +65,35 @@ def paired_process(fastq1, fastq2, gse, gsm, bowtie_ref, gtf, reverse, insert):
 		htseq_count = "pyrna_count.py htseq -i {0}/{1}/accepted_hits.bam -g {2} -o {0}/{1}/{1}.count -s yes".format(gse, gsm, gtf)
 	subprocess.call(htseq_count.split())
 
-def single_process(fastq, gse, gsm, bowtie_ref, gtf):
+def paired_chipseq_process(fastq1, fastq2, gse, gsm, bowtie_ref, genome):
+	#For human chipseq, use v1, mouse use v2
+	if genome == "mm10":
+		v = 2
+	elif genome == "hg19":
+		v = 1
+	align_command = "pychip_align.py -p {0} {1} -i {2} -v {3} -n {4} -o {5}/{4}".format(fastq1, fastq2, bowtie_ref, v, gsm, gse)
+	subprocess.call(align_command.split())
+	toucsc = "pychip_ucsc.py -i {0}/{1}/{1}.sam -g {2} -p".format(gse, gsm, genome)
+	subprocess.call(toucsc.split())
+
+def single_rnaseq_process(fastq, gse, gsm, bowtie_ref, gtf):
 	align_command = "pyrna_align.py tophat -f {} -i {} -g {} -t 2 -o {}/{}".format(fastq, bowtie_ref, gtf, gse, gsm)
 	subprocess.call(align_command.split())
 	#toucsc = "pyrna_ucsc.py -i {}/{}/accepted_hits.bam -g hg19 -ens".format(gse, gsm)
 	#subprocess.call(toucsc.split())
 	htseq_count = "pyrna_count.py htseq -i {0}/{1}/accepted_hits.bam -g {2} -o {0}/{1}/{1}.count".format(gse, gsm, gtf)
 	subprocess.call(htseq_count.split())
+
+def single_chipseq_process(fastq, gse, gsm, bowtie_ref, genome):
+	#For human chipseq, use v1, mouse use v2
+	if genome == "mm10":
+		v = 2
+	elif genome == "hg19":
+		v = 1
+	align_command = "pychip_align.py -f {0} -i {1} -v {2} -n {3} -o {4}/{3}".format(fastq, bowtie_ref, v, gsm, gse)
+	subprocess.call(align_command.split())
+	toucsc = "pychip_ucsc.py -i {0}/{1}/{1}.sam -g {2}".format(gse, gsm, genome)
+	subprocess.call(toucsc.split())
 
 def getmeanval(dic,maxbound=-1):
 	nsum=0;  n=0;	
