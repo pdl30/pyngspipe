@@ -38,8 +38,8 @@ def upload_folder(idir):
 	subprocess.call(command.split())
 
 #You need to zip and tar the entire directory and then upload it to tobias
-#def main():
-if __name__ == "__main__":
+def main():
+	#if __name__ == "__main__":
 	parser = argparse.ArgumentParser(description='Pyrnapipe is a RNA-seq pipeline. \n')
 	parser.add_argument('-i', '--idir', help='Input directory', required=False)
 	if len(sys.argv)==1:
