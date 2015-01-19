@@ -123,10 +123,8 @@ def check_dir(idir):
 		if necessary_ends[ends] == False:
 			raise Exception("Not all files present")
 
-def upload_folder(idir):
-	upload_folder = "/home/pdl30/RNAseq_compendium/samples"
-	upload_server = "super:"
-	command = "scp -r {} {}{}".format(idir, upload_server, upload_folder)
+def upload_folder(idir, gse, gsm):
+	command = "rsync -ave ssh {} super:/home/pdl30/RNAseq_compendium/samples/{}/{}/".format(idir, gse, gsm)
 	subprocess.call(command.split())
 
 def main():
@@ -159,7 +157,7 @@ def main():
 				create_gsm_dict(gsm_dict, gse, args["GSM"], details, sra, genome, "tophat2", exp_type, "PATRICK")
 				sqlite_scripts.insert_data(args["db"], gsm_dict) #Updating dictionary
 			check_dir(directory)
-			upload_folder(directory)
+			upload_folder(directory, gse, gsm)
 			shutil.rmtree(directory)
 
 	elif args["GSM"]:
@@ -176,5 +174,5 @@ def main():
 			sqlite_scripts.insert_data(args["db"], gsm_dict)
 		
 		check_dir(directory)
-		upload_folder(directory)
+		upload_folder(directory, gse, args["GSM"])
 		shutil.rmtree(directory)
