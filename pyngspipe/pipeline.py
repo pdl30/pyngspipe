@@ -112,6 +112,23 @@ def create_gsm_dict(gsm_dict, GSE, GSM, details, srx, genome, aligner, exp_type,
 	gsm_dict[GSM]["paired"] = paired
 	return gsm_dict
 
+def check_dir(idir):
+	necessary_ends = {"bam":False, "txt":False, "count":False, "fastqc.zip":False, "fastq.gz":False}
+	ifiles = [f for f in os.listdir(idir)]
+	for end in necessary_ends:
+		for ifile in ifiles:
+			if ifile.endswith(end):
+				necessary_ends[end] = True
+	for ends in necessary_ends:
+		if necessary_ends[ends] == False:
+			raise Exception("Not all files present")
+
+def upload_folder(idir):
+	upload_folder = "/home/pdl30/RNAseq_compendium/samples"
+	upload_server = "super:"
+	command = "scp -r {} {}{}".format(idir, upload_server, upload_folder)
+	subprocess.call(command.split())
+
 def main():
 	parser = argparse.ArgumentParser(description='Pyrnapipe is a RNA-seq pipeline. \n')
 	parser.add_argument('-g', '--GSE', help='GSE accession for processing. Will try all samples in the accession', required=False)
@@ -132,6 +149,7 @@ def main():
 		for gsm in sorted(gsms):
 			gse, genome, paired, details, sra, exp_type = downloader.download_gsm(gsm)
 			bowtie_ref, gtf, refbed = get_paths(path1, genome)
+			directory = "{}/{}".format(gse, gsm)
 			if exp_type == "rnaseq":
 				rnaseq_process_gsm(paired, gse, gsm, gtf, bowtie_ref, refbed, args["threads"])
 			elif exp_type == "chipseq":
@@ -140,10 +158,14 @@ def main():
 			if args["db"]:
 				create_gsm_dict(gsm_dict, gse, args["GSM"], details, sra, genome, "tophat2", exp_type, "PATRICK")
 				sqlite_scripts.insert_data(args["db"], gsm_dict) #Updating dictionary
+			check_dir(directory)
+			upload_folder(directory)
+			shutil.rmtree(directory)
 
 	elif args["GSM"]:
 		gse, genome, paired, details, sra, exp_type = downloader.download_gsm(args["GSM"]) 
 		bowtie_ref, gtf, refbed = get_paths(path1, genome)
+		directory = "{}/{}".format(gse, args["GSM"])
 		if exp_type == "rnaseq":
 			rnaseq_process_gsm(paired, gse, args["GSM"], gtf, bowtie_ref, refbed, args["threads"])
 		elif exp_type == "chipseq":
@@ -153,4 +175,6 @@ def main():
 			create_gsm_dict(gsm_dict, gse, args["GSM"], details, sra, genome, "tophat2", exp_type, "PATRICK")
 			sqlite_scripts.insert_data(args["db"], gsm_dict)
 		
-
+		check_dir(directory)
+		upload_folder(directory)
+		shutil.rmtree(directory)
