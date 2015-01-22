@@ -24,7 +24,7 @@ def rnacleanup(gse, gsm):
 		shutil.rmtree("{}/{}/tmp".format(gse, gsm))
 	if os.path.isdir("{}/{}/logs".format(gse, gsm)):
 		shutil.rmtree("{}/{}/logs".format(gse, gsm))
-	useless_files = ["prep_reads.info", "tophat_report.txt", "unmapped.bam"]
+	useless_files = ["prep_reads.info", "tophat_report.txt", "unmapped.bam", "trimmed_trun1.fq", "trimmed_trun2.fq", "trimmed_trun_sort.bam", "trimmed_trun_sort.bam.bai"]
 	for ufile in useless_files:
 		if os.path.isfile("{}/{}/{}".format(gse, gsm, ufile)):
 			os.remove("{}/{}/{}".format(gse, gsm, ufile))
@@ -124,7 +124,7 @@ def check_dir(idir):
 			raise Exception("Not all files present")
 
 def upload_folder(idir, gse, gsm):
-	command = "rsync -ave ssh {} super:/home/pdl30/RNAseq_compendium/samples/{}/{}/".format(idir, gse, gsm)
+	command = "rsync -ave ssh {} super:/home/pdl30/RNAseq_compendium/samples/{}/".format(idir, gse)
 	subprocess.call(command.split())
 
 def main():
