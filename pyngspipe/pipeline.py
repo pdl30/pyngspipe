@@ -90,7 +90,7 @@ def read_bowtie_report(gse, gsm):
 
 def gzip(ifile):
 	if os.path.isfile(ifile):
-		command = "gzip {}".format(ifile)
+		command = "gzip -f {}".format(ifile)
 		subprocess.call(command.split())
 
 def create_gsm_dict(gsm_dict, GSE, GSM, details, srx, genome, aligner, exp_type, submitter):
@@ -128,11 +128,12 @@ def upload_folder(idir, gse, gsm):
 	subprocess.call(command.split())
 
 def main():
-	parser = argparse.ArgumentParser(description='Pyrnapipe is a RNA-seq pipeline. \n')
+	parser = argparse.ArgumentParser(description='Pyrnapipe is a pipeline for RNA-seq and ChIP-seq samples from the GEO database\n')
 	parser.add_argument('-g', '--GSE', help='GSE accession for processing. Will try all samples in the accession', required=False)
 	parser.add_argument('-m', '--GSM', help='Individual GSM samples for processing', required=False)
 	parser.add_argument('-d', '--db', help='Optional Sqlite database file which will be updated with sample information.', required=False)
 	parser.add_argument('-t', '--threads', help='Number of threads to use for alignment, default=1', default=1, required=False)
+	parser.add_argument('-u', action='store_true', help='Will upload files to remote server', required=False)
 	if len(sys.argv)==1:
 		parser.print_help()
 		sys.exit(1)
@@ -156,9 +157,10 @@ def main():
 			if args["db"]:
 				create_gsm_dict(gsm_dict, gse, args["GSM"], details, sra, genome, "tophat2", exp_type, "PATRICK")
 				sqlite_scripts.insert_data(args["db"], gsm_dict) #Updating dictionary
-			check_dir(directory)
-			upload_folder(directory, gse, gsm)
-			shutil.rmtree(directory)
+			if args["u"]:
+				check_dir(directory)
+				upload_folder(directory, gse, gsm)
+				shutil.rmtree(directory)
 
 	elif args["GSM"]:
 		gse, genome, paired, details, sra, exp_type = downloader.download_gsm(args["GSM"]) 
@@ -172,7 +174,7 @@ def main():
 		if args["db"]:
 			create_gsm_dict(gsm_dict, gse, args["GSM"], details, sra, genome, "tophat2", exp_type, "PATRICK")
 			sqlite_scripts.insert_data(args["db"], gsm_dict)
-		
-		check_dir(directory)
-		upload_folder(directory, gse, args["GSM"])
-		shutil.rmtree(directory)
+		if args["u"]:
+			check_dir(directory)
+			upload_folder(directory, gse, args["GSM"])
+			shutil.rmtree(directory)
