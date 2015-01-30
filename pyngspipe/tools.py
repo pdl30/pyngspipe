@@ -47,11 +47,13 @@ def read_infer():
 				per1 = line.lstrip("Fraction of reads explained by \"1++,1--,2+-,2-+\": ")
 			elif line.startswith("Fraction of reads explained by \"1+-,1-+,2++,2--\": "):
 				per2 = line.lstrip("Fraction of reads explained by \"1+-,1-+,2++,2--\": ")
-	if float(per1) > float(per2):
-		reverse = False
+	if float(per1) > 0.8:
+		infer = "yes"
+	elif float(per2) > 0.8:
+		infer = "reverse"
 	else:
-		reverse = True
-	return reverse
+		infer = "no"
+	return infer
 
 def paired_rnaseq_process(fastq1, fastq2, gse, gsm, bowtie_ref, gtf, reverse, insert, threads):
 	#Need to look at insert size as well! Add that to infer_experiment?
@@ -61,10 +63,12 @@ def paired_rnaseq_process(fastq1, fastq2, gse, gsm, bowtie_ref, gtf, reverse, in
 	#toucsc = "pyrna_ucsc.py -i {}/{}/accepted_hits.bam -g hg19 -ens".format(gse, gsm)
 	#subprocess.call(toucsc.split())
 	print "==> Running HTSeq-count...\n"
-	if reverse:
+	if reverse == "reverse":
 		htseq_count = "pyrna_count.py htseq -i {0}/{1}/accepted_hits.bam -g {2} -o {0}/{1}/{1}.count -s reverse".format(gse, gsm, gtf)
-	else:
+	elif reverse == "yes":
 		htseq_count = "pyrna_count.py htseq -i {0}/{1}/accepted_hits.bam -g {2} -o {0}/{1}/{1}.count -s yes".format(gse, gsm, gtf)
+	elif reverse == "no":
+		htseq_count = "pyrna_count.py htseq -i {0}/{1}/accepted_hits.bam -g {2} -o {0}/{1}/{1}.count -s no".format(gse, gsm, gtf)
 	subprocess.call(htseq_count.split())
 
 def paired_chipseq_process(fastq1, fastq2, gse, gsm, bowtie_ref, genome, threads):
@@ -87,7 +91,7 @@ def single_rnaseq_process(fastq, gse, gsm, bowtie_ref, gtf, threads):
 	#toucsc = "pyrna_ucsc.py -i {}/{}/accepted_hits.bam -g hg19 -ens".format(gse, gsm)
 	#subprocess.call(toucsc.split())
 	print "==> Running HTSeq-count...\n"
-	htseq_count = "pyrna_count.py htseq -i {0}/{1}/accepted_hits.bam -g {2} -o {0}/{1}/{1}.count".format(gse, gsm, gtf)
+	htseq_count = "pyrna_count.py htseq -s no -i {0}/{1}/accepted_hits.bam -g {2} -o {0}/{1}/{1}.count".format(gse, gsm, gtf)
 	subprocess.call(htseq_count.split())
 
 def single_chipseq_process(fastq, gse, gsm, bowtie_ref, genome, threads):

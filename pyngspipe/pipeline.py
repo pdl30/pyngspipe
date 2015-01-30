@@ -55,7 +55,7 @@ def rnaseq_process_gsm(paired, gse, gsm, gtf, bowtie_ref, refbed, threads):
 		rnacleanup(gse, gsm)
 		gzip(fastq)
 
-def chipseq_process_gsm(paired, gse, gsm, gtf, bowtie_ref, refbed, threads):
+def chipseq_process_gsm(paired, gse, gsm, gtf, bowtie_ref, refbed, threads, genome):
 	if paired:
 		fastq1 = "{0}/{1}/{1}_1.fastq".format(gse, gsm)
 		fastq2 = "{0}/{1}/{1}_2.fastq".format(gse, gsm)
@@ -152,7 +152,7 @@ def main():
 			if exp_type == "rnaseq":
 				rnaseq_process_gsm(paired, gse, gsm, gtf, bowtie_ref, refbed, args["threads"])
 			elif exp_type == "chipseq":
-				chipseq_process_gsm(paired, gse, gsm, gtf, bowtie_ref, refbed, args["threads"])
+				chipseq_process_gsm(paired, gse, gsm, gtf, bowtie_ref, refbed, args["threads"], genome)
 			
 			if args["db"]:
 				create_gsm_dict(gsm_dict, gse, args["GSM"], details, sra, genome, "tophat2", exp_type, "PATRICK")
@@ -169,7 +169,7 @@ def main():
 		if exp_type == "rnaseq":
 			rnaseq_process_gsm(paired, gse, args["GSM"], gtf, bowtie_ref, refbed, args["threads"])
 		elif exp_type == "chipseq":
-			chipseq_process_gsm(paired, gse, args["GSM"], gtf, bowtie_ref, refbed, args["threads"])
+			chipseq_process_gsm(paired, gse, args["GSM"], gtf, bowtie_ref, refbed, args["threads"], genome)
 
 		if args["db"]:
 			create_gsm_dict(gsm_dict, gse, args["GSM"], details, sra, genome, "tophat2", exp_type, "PATRICK")
