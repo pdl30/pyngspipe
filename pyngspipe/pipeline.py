@@ -31,13 +31,13 @@ def rnacleanup(gse, gsm):
 
 def get_paths(path1, genome):
 	if genome == "hg19":
-		bowtie_ref = "/home/patrick/Reference_Genomes/pyrnapipe_references/hg19/hg19"
-		gtf = path1 + "hg19.gtf"
-		refbed = path1 + "hg19_Ensembl.bed"
+		bowtie_ref = path1 + "hg19/hg19"
+		gtf = path1 + "hg19/hg19.gtf"
+		refbed = path1 + "hg19/hg19_Ensembl.bed"
 	elif genome == "mm10":
-		bowtie_ref = "/home/patrick/Reference_Genomes/pyrnapipe_references/mm10/mm10"
-		gtf = path1 + "mm10.gtf"
-		refbed = path1 + "mm10_Ensembl.bed"
+		bowtie_ref = path1 + "mm10/mm10"
+		gtf = path1 + "mm10/mm10.gtf"
+		refbed = path1 + "mm10/mm10_Ensembl.bed"
 	return bowtie_ref, gtf, refbed
 
 def rnaseq_process_gsm(paired, gse, gsm, gtf, bowtie_ref, refbed, threads):
@@ -141,7 +141,7 @@ def main():
 	
 	gsm_dict = {}
 	
-	path1 = pkg_resources.resource_filename('pyngspipe', 'data/')
+	path1 = "/home/patrick/Reference_Genomes/pyngspipe_references/"
 
 	if args["GSE"]:
 		gsms = downloader.download_gse(args["GSE"])
