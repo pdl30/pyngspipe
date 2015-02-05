@@ -39,6 +39,9 @@ def download_gsm(gsm):
 	os.remove("{}.soft".format(gsm))
 	for line in lines:
 		line = line.rstrip()
+		if line.startswith("!Sample_title = "):
+			line = line.lstrip("!Sample_title = ")
+			name = line
 		if line.startswith("!Sample_series_id = "):
 			line = line.lstrip("!Sample_series_id = ")
 			gse = line
@@ -80,7 +83,7 @@ def download_gsm(gsm):
 				download3 = "wget -r -c --no-verbose -N -nd ftp://ftp-trace.ncbi.nlm.nih.gov/sra/sra-instant/reads/ByExp/sra/{}".format(sra)
 				subprocess.call(download3, shell=True)
 	paired = combine_convert(old_path, gsm)
-	return gse, genome, paired, details, sra, exp_type
+	return gse, genome, paired, details, sra, exp_type, name
 
 def combine_convert(old_path, gsm):
 	new_path = os.getcwd()

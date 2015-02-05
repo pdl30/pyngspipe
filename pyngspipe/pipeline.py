@@ -146,7 +146,7 @@ def main():
 	if args["GSE"]:
 		gsms = downloader.download_gse(args["GSE"])
 		for gsm in sorted(gsms):
-			gse, genome, paired, details, sra, exp_type = downloader.download_gsm(gsm)
+			gse, genome, paired, details, sra, exp_type, name = downloader.download_gsm(gsm)
 			bowtie_ref, gtf, refbed = get_paths(path1, genome)
 			directory = "{}/{}".format(gse, gsm)
 			if exp_type == "rnaseq":
@@ -163,7 +163,7 @@ def main():
 				shutil.rmtree(directory)
 
 	elif args["GSM"]:
-		gse, genome, paired, details, sra, exp_type = downloader.download_gsm(args["GSM"]) 
+		gse, genome, paired, details, sra, exp_type, name = downloader.download_gsm(args["GSM"]) 
 		bowtie_ref, gtf, refbed = get_paths(path1, genome)
 		directory = "{}/{}".format(gse, args["GSM"])
 		if exp_type == "rnaseq":

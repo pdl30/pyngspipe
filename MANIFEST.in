@@ -1,2 +1,1 @@
-recursive-include pyrnapipe *.py
-recursive-include pyrnapipe/data *
+recursive-include pyngspipe *.py

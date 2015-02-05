@@ -13,6 +13,7 @@ import argparse
 import ConfigParser
 import time 
 import subprocess
+import pkg_resources
 
 def ConfigSectionMap(Config, section):
 	dict1 = {}
@@ -31,8 +32,7 @@ def read_current_spreadsheet(spread):
 	#id, GSE, GSM, name, details, srx, genome, aligner, exp_type, alignment_report, date, comments, submitter
 	current_samples = {}
 	name = spread.split("_")
-	version = name[2].strip(".tsv$")
-	print version
+	version = name[4].strip(".tsv$")
 	with open(spread) as f:
 		for line in f:
 			line = line.rstrip()
@@ -40,9 +40,6 @@ def read_current_spreadsheet(spread):
 			if len(word) > 10:
 				current_samples[int(word[0])] = word
 	return current_samples, version
-
-def read_idir(idir):
-	ifiles = [f for f in os.listdir(idir)]
 
 def find_gsms(conditions):
 	gsms = {}
@@ -84,17 +81,24 @@ def find_details(gsms, conditions):
 		gsm_dict[GSM]["name"] = name
 	return gsm_dict
 
-def write_new_spreadsheet(current_samples, spread, version, gsm_dict):
-	for gsm in gsm_dict:
-		if gsm_dict["genome"] == "hg19":
-			
+def write_new_spreadsheet(current_samples, spreaddir, spread, version, gsm_dict):
+	v = float(version) + 0.01
+	output = open(spreaddir + "/rnaseq_compendium_samples_v{}.tsv".format(v), "w") 
 	for key in sorted(current_samples):
 		output.write("\t".join(current_samples[key])),
+	currend_ids = list(current_samples.keys())
+	if currend_ids:
+		last_id = max(list(current_samples.keys()))
+	else:
+		last_id = 0
 	for gsm in gsm_dict:
 		if gsm in current_samples:
 			print "Conflict with {}\n".format(gsm)
 		else:
-			output.write("{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}")
+			last_id += 1
+			output.write("{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\n".format(last_id, gsm_dict[gsm]["gse"], gsm, gsm_dict[gsm]["name"], gsm_dict[gsm]["details"], 
+				gsm_dict[gsm]["srx"], gsm_dict[gsm]["genome"],gsm_dict[gsm]["exp_type"],gsm_dict[gsm]["completion_date"], gsm_dict[gsm]["alignment_report"], 
+				gsm_dict[gsm]["submitter"])),
 
 def download_gsm_info(gsm):
 	old_path = os.getcwd()
@@ -145,7 +149,8 @@ def download_gsm_info(gsm):
 
 def main():
 	parser = argparse.ArgumentParser(description='Updates current spreadsheet with processed samples.')
-	parser.add_argument('-c', '--config', help='Config pointing to finished samples', required=False)
+	parser.add_argument('-c', '--config', help='Config pointing to finished samples', required=True)
+	parser.add_argument('-s', '--spreadsheet', help='Current spreadsheet with samples. Must look like: rnaseq_compendium_samples_v0.01.tsv', required=True)
 	if len(sys.argv)==1:
 		parser.print_help()
 		sys.exit(1)
@@ -157,6 +162,8 @@ def main():
 	conditions = ConfigSectionMap(Config, "Conditions")
 	gsms = find_gsms(conditions)
 	gsm_dict = find_details(gsms, conditions)
-	print gsm_dict
 
-main()
+	current_samples, version = read_current_spreadsheet(args["spreadsheet"])
+	spreaddir =  os.path.dirname(os.path.realpath(args["spreadsheet"]))
+
+	write_new_spreadsheet(current_samples, spreaddir, args["spreadsheet"], version, gsm_dict)
