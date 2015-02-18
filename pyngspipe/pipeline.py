@@ -60,7 +60,7 @@ def chipseq_process_gsm(paired, gse, gsm, gtf, bowtie_ref, refbed, threads, geno
 		fastq1 = "{0}/{1}/{1}_1.fastq".format(gse, gsm)
 		fastq2 = "{0}/{1}/{1}_2.fastq".format(gse, gsm)
 		#reverse, insert = tools.infer_experiment(fastq1, fastq2, bowtie_ref, refbed)
-		tools.paired_chipseq_process(fastq, gse, gsm, bowtie_ref, genome, threads)
+		tools.paired_chipseq_process(fastq1,fastq2, gse, gsm, bowtie_ref, genome, threads)
 		gzip(fastq1)
 		gzip(fastq2)
 	else:
