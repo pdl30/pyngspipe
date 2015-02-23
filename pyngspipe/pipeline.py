@@ -74,8 +74,11 @@ def read_tophat_report(gse, gsm):
 	if os.path.isfile(align_file):
 		align = open(align_file, "r")
 		lines = align.readlines()
-		if lines:
-			data = lines
+		data = []
+		for line in lines:
+			line = line.rstrip()
+			line = line.lstrip()
+			data.append(line)
 	return data
 
 def read_bowtie_report(gse, gsm):

@@ -28,7 +28,7 @@ def download_gse(gse):
 	os.remove("{}.soft".format(gse))
 	return gsm_samples
 
-def download_gsm(gsm):
+def download_gsm(gsm, download=True):
 	old_path = os.getcwd()
 	download2 = "wget -c -nv -q 'http://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc='{0}'&targ=self&view=quick&form=text&token=_blank' -O {0}.soft".format(gsm)
 	subprocess.call(download2, shell=True)
@@ -66,12 +66,14 @@ def download_gsm(gsm):
 			growth_info = growth_info.rstrip()
 	details = extract_info + growth_info
 	
-	if not os.path.isdir(gse):
-		os.mkdir(gse)
-	gsm_path = "{}/{}".format(gse, gsm)
-	if not os.path.isdir(gsm_path):
-		os.mkdir(gsm_path)
-	os.chdir(gsm_path)
+	if download:
+		if not os.path.isdir(gse):
+			os.mkdir(gse)
+		gsm_path = "{}/{}".format(gse, gsm)
+		if not os.path.isdir(gsm_path):
+			os.mkdir(gsm_path)
+		os.chdir(gsm_path)
+
 	sra = None
 	gsm_sra = []
 	for line in lines:
@@ -80,10 +82,14 @@ def download_gsm(gsm):
 			sra_path = line.split("ByExp/sra/")
 			if len(sra_path) > 1:
 				sra = sra_path[1]
-				download3 = "wget -r -c --no-verbose -N -nd ftp://ftp-trace.ncbi.nlm.nih.gov/sra/sra-instant/reads/ByExp/sra/{}".format(sra)
-				subprocess.call(download3, shell=True)
-	paired = combine_convert(old_path, gsm)
-	return gse, genome, paired, details, sra, exp_type, name
+				if download:
+					download3 = "wget -r -c --no-verbose -N -nd ftp://ftp-trace.ncbi.nlm.nih.gov/sra/sra-instant/reads/ByExp/sra/{}".format(sra)
+					subprocess.call(download3, shell=True)
+	if download:
+		paired = combine_convert(old_path, gsm)
+		return gse, genome, paired, details, sra, exp_type, name
+	else:
+		return gse, genome, details, sra, exp_type, name
 
 def combine_convert(old_path, gsm):
 	new_path = os.getcwd()
