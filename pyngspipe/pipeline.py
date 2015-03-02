@@ -45,28 +45,32 @@ def rnaseq_process_gsm(paired, gse, gsm, gtf, bowtie_ref, refbed, threads):
 		fastq1 = "{0}/{1}/{1}_1.fastq".format(gse, gsm)
 		fastq2 = "{0}/{1}/{1}_2.fastq".format(gse, gsm)
 		reverse, insert = tools.infer_experiment(fastq1, fastq2, bowtie_ref, refbed)
-		tools.paired_rnaseq_process(fastq1, fastq2, gse, gsm, bowtie_ref, gtf, reverse, insert, threads)
+		align_command, htseq_count = tools.paired_rnaseq_process(fastq1, fastq2, gse, gsm, bowtie_ref, gtf, reverse, insert, threads)
 		rnacleanup(gse, gsm)
 		gzip(fastq1)
 		gzip(fastq2)
+		p = [reverse, insert[0], insert[1]]
+		write_pygns_report(gse, gsm, align_command, htseq=htseq_count, paired=p)
 	else:
 		fastq = "{0}/{1}/{1}.fastq".format(gse, gsm)
-		tools.single_rnaseq_process(fastq, gse, gsm, bowtie_ref, gtf, threads)
+		align_command, htseq_count = tools.single_rnaseq_process(fastq, gse, gsm, bowtie_ref, gtf, threads)
 		rnacleanup(gse, gsm)
 		gzip(fastq)
+		write_pygns_report(gse, gsm, align_command, htseq=htseq_count)
 
 def chipseq_process_gsm(paired, gse, gsm, gtf, bowtie_ref, refbed, threads, genome):
 	if paired:
 		fastq1 = "{0}/{1}/{1}_1.fastq".format(gse, gsm)
 		fastq2 = "{0}/{1}/{1}_2.fastq".format(gse, gsm)
 		#reverse, insert = tools.infer_experiment(fastq1, fastq2, bowtie_ref, refbed)
-		tools.paired_chipseq_process(fastq1,fastq2, gse, gsm, bowtie_ref, genome, threads)
+		align_command, toucsc = tools.paired_chipseq_process(fastq1,fastq2, gse, gsm, bowtie_ref, genome, threads)
 		gzip(fastq1)
 		gzip(fastq2)
 	else:
 		fastq = "{0}/{1}/{1}.fastq".format(gse, gsm)
-		tools.single_chipseq_process(fastq, gse, gsm, bowtie_ref, genome, threads)
+		align_command, toucsc = tools.single_chipseq_process(fastq, gse, gsm, bowtie_ref, genome, threads)
 		gzip(fastq)
+	write_pygns_report(gse, gsm, align_command, toucsc=toucsc)
 
 def read_tophat_report(gse, gsm):
 	align_file = "{}/{}/align_summary.txt".format(gse, gsm)
@@ -95,6 +99,17 @@ def gzip(ifile):
 	if os.path.isfile(ifile):
 		command = "gzip -f {}".format(ifile)
 		subprocess.call(command.split())
+
+def write_pygns_report(gse, gsm, align_command, htseq=None, toucsc=None, paired=None):
+	output = open("{}/{}/pyngs_summary.txt".format(gse, gsm), "w")
+	output.write("{}\n".format(align_command)),
+	if htseq:
+		output.write("{}\n".format(htseq))
+	if toucsc:
+		output.write("{}\n".format(toucsc))
+	if paired:
+		output.write("Experiment type: {}\nInsert size: {}\nSD: {}\n".format(paired[0], paired[1], paired[2])),
+	output.close()
 
 def create_gsm_dict(gsm_dict, GSE, GSM, details, srx, genome, aligner, exp_type, submitter):
 	gsm_dict[GSM] = {}

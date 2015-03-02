@@ -70,6 +70,7 @@ def paired_rnaseq_process(fastq1, fastq2, gse, gsm, bowtie_ref, gtf, reverse, in
 	elif reverse == "no":
 		htseq_count = "pyrna_count.py htseq -i {0}/{1}/accepted_hits.bam -g {2} -o {0}/{1}/{1}.count -s no".format(gse, gsm, gtf)
 	subprocess.call(htseq_count.split())
+	return align_command, htseq_count
 
 def paired_chipseq_process(fastq1, fastq2, gse, gsm, bowtie_ref, genome, threads):
 	#For human chipseq, use v1, mouse use v2
@@ -83,6 +84,7 @@ def paired_chipseq_process(fastq1, fastq2, gse, gsm, bowtie_ref, genome, threads
 	print "==> Converting to BigWig...\n"
 	toucsc = "pychip_ucsc.py -i {0}/{1}/{1}.sam -g {2} -p".format(gse, gsm, genome)
 	subprocess.call(toucsc.split())
+	return align_command, toucsc
 
 def single_rnaseq_process(fastq, gse, gsm, bowtie_ref, gtf, threads):
 	print "==> Running Tophat...\n"
@@ -93,6 +95,7 @@ def single_rnaseq_process(fastq, gse, gsm, bowtie_ref, gtf, threads):
 	print "==> Running HTSeq-count...\n"
 	htseq_count = "pyrna_count.py htseq -s no -i {0}/{1}/accepted_hits.bam -g {2} -o {0}/{1}/{1}.count".format(gse, gsm, gtf)
 	subprocess.call(htseq_count.split())
+	return align_command, htseq_count
 
 def single_chipseq_process(fastq, gse, gsm, bowtie_ref, genome, threads):
 	#For human chipseq, use v1, mouse use v2
@@ -106,6 +109,7 @@ def single_chipseq_process(fastq, gse, gsm, bowtie_ref, genome, threads):
 	print "==> Converting to BigWig...\n"
 	toucsc = "pychip_ucsc.py -i {0}/{1}/{1}.sam -g {2}".format(gse, gsm, genome)
 	subprocess.call(toucsc.split())
+	return align_command, toucsc
 
 def getmeanval(dic,maxbound=-1):
 	nsum=0;  n=0;	
