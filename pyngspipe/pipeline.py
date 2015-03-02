@@ -32,11 +32,11 @@ def rnacleanup(gse, gsm):
 def get_paths(path1, genome):
 	if genome == "hg19":
 		bowtie_ref = path1 + "hg19/hg19"
-		gtf = path1 + "hg19/hg19.gtf"
+		gtf = path1 + "hg19/Homo_sapiens.GRCh38.76_ucsc.gtf"
 		refbed = path1 + "hg19/hg19_Ensembl.bed"
 	elif genome == "mm10":
 		bowtie_ref = path1 + "mm10/mm10"
-		gtf = path1 + "mm10/mm10.gtf"
+		gtf = path1 + "mm10/Mus_musculus.GRCm38.76_ucsc.gtf"
 		refbed = path1 + "mm10/mm10_Ensembl.bed"
 	return bowtie_ref, gtf, refbed
 
