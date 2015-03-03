@@ -32,20 +32,22 @@ def rnacleanup(gse, gsm):
 def get_paths(path1, genome):
 	if genome == "hg19":
 		bowtie_ref = path1 + "hg19/hg19"
-		gtf = path1 + "hg19/Homo_sapiens.GRCh38.76_ucsc.gtf"
+		gtf = path1 + "hg19/hg19.gtf"
 		refbed = path1 + "hg19/hg19_Ensembl.bed"
+		anno_gtf = path1 + "hg19/Homo_sapiens.GRCh38.76_myucsc.gtf"
 	elif genome == "mm10":
 		bowtie_ref = path1 + "mm10/mm10"
-		gtf = path1 + "mm10/Mus_musculus.GRCm38.76_ucsc.gtf"
+		gtf = path1 + "mm10/mm10.gtf"
 		refbed = path1 + "mm10/mm10_Ensembl.bed"
-	return bowtie_ref, gtf, refbed
+		anno_gtf = path1 + "mm10/Mus_musculus.GRCm38.76_ucsc.gtf"
+	return bowtie_ref, gtf, refbed, anno_gtf
 
-def rnaseq_process_gsm(paired, gse, gsm, gtf, bowtie_ref, refbed, threads):
+def rnaseq_process_gsm(paired, gse, gsm, gtf, anno_gtf, bowtie_ref, refbed, threads):
 	if paired:
 		fastq1 = "{0}/{1}/{1}_1.fastq".format(gse, gsm)
 		fastq2 = "{0}/{1}/{1}_2.fastq".format(gse, gsm)
 		reverse, insert = tools.infer_experiment(fastq1, fastq2, bowtie_ref, refbed)
-		align_command, htseq_count = tools.paired_rnaseq_process(fastq1, fastq2, gse, gsm, bowtie_ref, gtf, reverse, insert, threads)
+		align_command, htseq_count = tools.paired_rnaseq_process(fastq1, fastq2, gse, gsm, bowtie_ref, gtf, anno_gtf, reverse, insert, threads)
 		rnacleanup(gse, gsm)
 		gzip(fastq1)
 		gzip(fastq2)
@@ -53,7 +55,7 @@ def rnaseq_process_gsm(paired, gse, gsm, gtf, bowtie_ref, refbed, threads):
 		write_pygns_report(gse, gsm, align_command, htseq=htseq_count, paired=p)
 	else:
 		fastq = "{0}/{1}/{1}.fastq".format(gse, gsm)
-		align_command, htseq_count = tools.single_rnaseq_process(fastq, gse, gsm, bowtie_ref, gtf, threads)
+		align_command, htseq_count = tools.single_rnaseq_process(fastq, gse, gsm, bowtie_ref, gtf, anno_gtf, threads)
 		rnacleanup(gse, gsm)
 		gzip(fastq)
 		write_pygns_report(gse, gsm, align_command, htseq=htseq_count)
@@ -62,7 +64,6 @@ def chipseq_process_gsm(paired, gse, gsm, gtf, bowtie_ref, refbed, threads, geno
 	if paired:
 		fastq1 = "{0}/{1}/{1}_1.fastq".format(gse, gsm)
 		fastq2 = "{0}/{1}/{1}_2.fastq".format(gse, gsm)
-		#reverse, insert = tools.infer_experiment(fastq1, fastq2, bowtie_ref, refbed)
 		align_command, toucsc = tools.paired_chipseq_process(fastq1,fastq2, gse, gsm, bowtie_ref, genome, threads)
 		gzip(fastq1)
 		gzip(fastq2)
@@ -165,10 +166,10 @@ def main():
 		gsms = downloader.download_gse(args["GSE"])
 		for gsm in sorted(gsms):
 			gse, genome, paired, details, sra, exp_type, name = downloader.download_gsm(gsm)
-			bowtie_ref, gtf, refbed = get_paths(path1, genome)
+			bowtie_ref, gtf, refbed, anno_gtf = get_paths(path1, genome)
 			directory = "{}/{}".format(gse, gsm)
 			if exp_type == "rnaseq":
-				rnaseq_process_gsm(paired, gse, gsm, gtf, bowtie_ref, refbed, args["threads"])
+				rnaseq_process_gsm(paired, gse, gsm, gtf, anno_gtf, bowtie_ref, refbed, args["threads"])
 			elif exp_type == "chipseq":
 				chipseq_process_gsm(paired, gse, gsm, gtf, bowtie_ref, refbed, args["threads"], genome)
 			
@@ -185,7 +186,7 @@ def main():
 		bowtie_ref, gtf, refbed = get_paths(path1, genome)
 		directory = "{}/{}".format(gse, args["GSM"])
 		if exp_type == "rnaseq":
-			rnaseq_process_gsm(paired, gse, args["GSM"], gtf, bowtie_ref, refbed, args["threads"])
+			rnaseq_process_gsm(paired, gse, args["GSM"], gtf, anno_gtf, bowtie_ref, refbed, args["threads"])
 		elif exp_type == "chipseq":
 			chipseq_process_gsm(paired, gse, args["GSM"], gtf, bowtie_ref, refbed, args["threads"], genome)
 
