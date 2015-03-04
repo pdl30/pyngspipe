@@ -28,13 +28,14 @@ def head_file(ifile, outfile, num):
 def infer_experiment(fastq1, fastq2, bowtie_ref, refbed):
 	if not os.path.isdir("tmp"):
 		os.mkdir("tmp")
+	dev = open('/dev/null', 'w')
 	head_file(fastq1, "tmp/infer_test_1.fq", 1000000)
 	head_file(fastq2, "tmp/infer_test_2.fq", 1000000)
 	align_command = "bowtie2 -x {} -1 tmp/infer_test_1.fq -2 tmp/infer_test_2.fq -S tmp/tmp.sam".format(bowtie_ref)
-	subprocess.call(align_command.split())
+	subprocess.call(align_command.split(), stdout=dev)
 	infercommand = "infer_experiment.py -i tmp/tmp.sam -r {} > tmp/infer_res.txt".format(refbed)
 	insert = get_insert("tmp/tmp.sam")
-	subprocess.call(infercommand, shell=True)
+	subprocess.call(infercommand, shell=True, stdout=dev)
 	reverse = read_infer()
 	shutil.rmtree("tmp")
 	return reverse, insert
@@ -58,54 +59,58 @@ def read_infer():
 def paired_rnaseq_process(fastq1, fastq2, gse, gsm, bowtie_ref, gtf, anno_gtf, reverse, insert, threads):
 	#Need to look at insert size as well! Add that to infer_experiment?
 	print "==> Running Tophat...\n"
+	dev = open('/dev/null', 'w')
 	align_command = "pyrna_align.py tophat -p {0} {1} -i {2} -g {3} -t {4} -o {5}/{6} -a {7} -b {8}".format(fastq1, fastq2, bowtie_ref, gtf, threads, gse, gsm, 
-		int(roundinsert[0]), int(round(insert[1])))
-	subprocess.call(align_command.split())
+		int(round(insert[0])), int(round(insert[1])))
+	subprocess.call(align_command.split(), stdout=dev)
 	print "==> Running HTSeq-count...\n"
 	if reverse == "reverse":
-		htseq_count = "pyrna_count.py htseq -i {0}/{1}/accepted_hits.bam -g {2} -o {0}/{1}/{1}.count -s reverse".format(gse, gsm, anno_gtf)
+		htseq_count = "pyrna_count.py htseq -i {0}/{1}/{1}.bam -g {2} -o {0}/{1}/{1}.count -s reverse".format(gse, gsm, anno_gtf)
 	elif reverse == "yes":
-		htseq_count = "pyrna_count.py htseq -i {0}/{1}/accepted_hits.bam -g {2} -o {0}/{1}/{1}.count -s yes".format(gse, gsm, anno_gtf)
+		htseq_count = "pyrna_count.py htseq -i {0}/{1}/{1}.bam -g {2} -o {0}/{1}/{1}.count -s yes".format(gse, gsm, anno_gtf)
 	elif reverse == "no":
-		htseq_count = "pyrna_count.py htseq -i {0}/{1}/accepted_hits.bam -g {2} -o {0}/{1}/{1}.count -s no".format(gse, gsm, anno_gtf)
-	subprocess.call(htseq_count.split())
+		htseq_count = "pyrna_count.py htseq -i {0}/{1}/{1}.bam -g {2} -o {0}/{1}/{1}.count -s no".format(gse, gsm, anno_gtf)
+	subprocess.call(htseq_count.split(), stdout=dev)
 	return align_command, htseq_count
 
 def paired_chipseq_process(fastq1, fastq2, gse, gsm, bowtie_ref, genome, threads):
 	#For human chipseq, use v1, mouse use v2
+	dev = open('/dev/null', 'w')
 	if genome == "mm10":
 		v = 2
 	elif genome == "hg19":
 		v = 1
 	print "==> Running Bowtie...\n"
 	align_command = "pychip_align.py -p {0} {1} -i {2} -v {3} -n {4} -o {5}/{4} -t {6}".format(fastq1, fastq2, bowtie_ref, v, gsm, gse, threads)
-	subprocess.call(align_command.split())
+	subprocess.call(align_command.split(), stdout=dev)
 	print "==> Converting to BigWig...\n"
 	toucsc = "pychip_ucsc.py -i {0}/{1}/{1}.sam -g {2} -p".format(gse, gsm, genome)
-	subprocess.call(toucsc.split())
+	subprocess.call(toucsc.split(), stdout=dev)
 	return align_command, toucsc
 
 def single_rnaseq_process(fastq, gse, gsm, bowtie_ref, gtf, anno_gtf, threads):
 	print "==> Running Tophat...\n"
+	dev = open('/dev/null', 'w')
 	align_command = "pyrna_align.py tophat -f {0} -i {1} -g {2} -t {3} -o {4}/{5}".format(fastq, bowtie_ref, gtf, threads, gse, gsm)
-	subprocess.call(align_command.split())
+	subprocess.call(align_command.split(), stdout=dev)
 	print "==> Running HTSeq-count...\n"
-	htseq_count = "pyrna_count.py htseq -s no -i {0}/{1}/accepted_hits.bam -g {2} -o {0}/{1}/{1}.count".format(gse, gsm, anno_gtf)
-	subprocess.call(htseq_count.split())
+	htseq_count = "pyrna_count.py htseq -s no -i {0}/{1}/{1}.bam -g {2} -o {0}/{1}/{1}.count".format(gse, gsm, anno_gtf)
+	subprocess.call(htseq_count.split(), stdout=dev)
 	return align_command, htseq_count
 
 def single_chipseq_process(fastq, gse, gsm, bowtie_ref, genome, threads):
 	#For human chipseq, use v1, mouse use v2
+	dev = open('/dev/null', 'w')
 	if genome == "mm10":
 		v = 2
 	elif genome == "hg19":
 		v = 1
 	print "==> Running Bowtie...\n"
 	align_command = "pychip_align.py -f {0} -i {1} -v {2} -n {3} -o {4}/{3} -t {5}".format(fastq, bowtie_ref, v, gsm, gse, threads)
-	subprocess.call(align_command.split())
+	subprocess.call(align_command.split(), stdout=dev)
 	print "==> Converting to BigWig...\n"
 	toucsc = "pychip_ucsc.py -i {0}/{1}/{1}.sam -g {2}".format(gse, gsm, genome)
-	subprocess.call(toucsc.split())
+	subprocess.call(toucsc.split(), stdout=dev)
 	return align_command, toucsc
 
 def getmeanval(dic,maxbound=-1):
