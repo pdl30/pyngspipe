@@ -109,7 +109,7 @@ def write_pygns_report(gse, gsm, align_command, htseq=None, toucsc=None, paired=
 	if toucsc:
 		output.write("{}\n".format(toucsc))
 	if paired:
-		output.write("Experiment type: {}\nInsert size: {}\nSD: {}\n".format(paired[0], paired[1], paired[2])),
+		output.write("Experiment orientation: {}\nInsert size: {}\nSD: {}\n".format(paired[0], paired[1], paired[2])),
 	output.close()
 
 def create_gsm_dict(gsm_dict, GSE, GSM, details, srx, genome, aligner, exp_type, submitter):
@@ -183,7 +183,7 @@ def main():
 
 	elif args["GSM"]:
 		gse, genome, paired, details, sra, exp_type, name = downloader.download_gsm(args["GSM"]) 
-		bowtie_ref, gtf, refbed = get_paths(path1, genome)
+		bowtie_ref, gtf, refbed, anno_gtf = get_paths(path1, genome)
 		directory = "{}/{}".format(gse, args["GSM"])
 		if exp_type == "rnaseq":
 			rnaseq_process_gsm(paired, gse, args["GSM"], gtf, anno_gtf, bowtie_ref, refbed, args["threads"])

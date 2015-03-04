@@ -58,7 +58,8 @@ def read_infer():
 def paired_rnaseq_process(fastq1, fastq2, gse, gsm, bowtie_ref, gtf, anno_gtf, reverse, insert, threads):
 	#Need to look at insert size as well! Add that to infer_experiment?
 	print "==> Running Tophat...\n"
-	align_command = "pyrna_align.py tophat -p {0} {1} -i {2} -g {3} -t {4} -o {5}/{6} -a {7} -b {8}".format(fastq1, fastq2, bowtie_ref, gtf, threads, gse, gsm, insert[0], insert[1])
+	align_command = "pyrna_align.py tophat -p {0} {1} -i {2} -g {3} -t {4} -o {5}/{6} -a {7} -b {8}".format(fastq1, fastq2, bowtie_ref, gtf, threads, gse, gsm, 
+		int(roundinsert[0]), int(round(insert[1])))
 	subprocess.call(align_command.split())
 	print "==> Running HTSeq-count...\n"
 	if reverse == "reverse":
