@@ -65,11 +65,11 @@ def paired_rnaseq_process(fastq1, fastq2, gse, gsm, bowtie_ref, gtf, anno_gtf, r
 	subprocess.call(align_command.split(), stdout=dev)
 	print "==> Running HTSeq-count...\n"
 	if reverse == "reverse":
-		htseq_count = "pyrna_count.py htseq -i {0}/{1}/{1}.bam -g {2} -o {0}/{1}/{1}.count -s reverse".format(gse, gsm, anno_gtf)
+		htseq_count = "pyrna_count.py htseq -i {0}/{1}/accepted_hits.bam -g {2} -o {0}/{1}/{1}.count -s reverse".format(gse, gsm, anno_gtf)
 	elif reverse == "yes":
-		htseq_count = "pyrna_count.py htseq -i {0}/{1}/{1}.bam -g {2} -o {0}/{1}/{1}.count -s yes".format(gse, gsm, anno_gtf)
+		htseq_count = "pyrna_count.py htseq -i {0}/{1}/accepted_hits.bam -g {2} -o {0}/{1}/{1}.count -s yes".format(gse, gsm, anno_gtf)
 	elif reverse == "no":
-		htseq_count = "pyrna_count.py htseq -i {0}/{1}/{1}.bam -g {2} -o {0}/{1}/{1}.count -s no".format(gse, gsm, anno_gtf)
+		htseq_count = "pyrna_count.py htseq -i {0}/{1}/accepted_hits.bam -g {2} -o {0}/{1}/{1}.count -s no".format(gse, gsm, anno_gtf)
 	subprocess.call(htseq_count.split(), stdout=dev)
 	return align_command, htseq_count
 
@@ -94,7 +94,7 @@ def single_rnaseq_process(fastq, gse, gsm, bowtie_ref, gtf, anno_gtf, threads):
 	align_command = "pyrna_align.py tophat -f {0} -i {1} -g {2} -t {3} -o {4}/{5}".format(fastq, bowtie_ref, gtf, threads, gse, gsm)
 	subprocess.call(align_command.split(), stdout=dev)
 	print "==> Running HTSeq-count...\n"
-	htseq_count = "pyrna_count.py htseq -s no -i {0}/{1}/{1}.bam -g {2} -o {0}/{1}/{1}.count".format(gse, gsm, anno_gtf)
+	htseq_count = "pyrna_count.py htseq -s no -i {0}/{1}/accepted_hits.bam -g {2} -o {0}/{1}/{1}.count".format(gse, gsm, anno_gtf)
 	subprocess.call(htseq_count.split(), stdout=dev)
 	return align_command, htseq_count
 
