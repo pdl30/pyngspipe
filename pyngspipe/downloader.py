@@ -37,6 +37,9 @@ def download_gsm(gsm, download=True):
 	extract_info = ""
 	growth_info = ""
 	os.remove("{}.soft".format(gsm))
+	gse = None
+	genome = None
+	exp_type = None
 	for line in lines:
 		line = line.rstrip()
 		if line.startswith("!Sample_title = "):
