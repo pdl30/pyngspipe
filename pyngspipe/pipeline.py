@@ -16,6 +16,7 @@ import pyngspipe
 from pyngspipe import tools, downloader, sqlite_scripts
 import pkg_resources
 import time
+import ConfigParser
 
 def rnacleanup(gse, gsm):
 	command = "mv {0}/{1}/accepted_hits.bam {0}/{1}/{1}.bam".format(gse, gsm)
@@ -29,18 +30,31 @@ def rnacleanup(gse, gsm):
 		if os.path.isfile("{}/{}/{}".format(gse, gsm, ufile)):
 			os.remove("{}/{}/{}".format(gse, gsm, ufile))
 
-def get_paths(path1, genome):
+def get_paths(config, genome):
 	if genome == "hg19":
-		bowtie_ref = path1 + "hg19/hg19"
-		gtf = path1 + "hg19/hg19.gtf"
-		refbed = path1 + "hg19/hg19_Ensembl.bed"
-		anno_gtf = path1 + "hg19/Homo_sapiens.GRCh38.76_myucsc.gtf"
+		bowtie_ref = config["hg19_bowtie_index"]
+		gtf = config["hg19_gtf"]
+		refbed = config["hg19_ref"]
+		anno_gtf = config["hg19_anno_gtf"]
 	elif genome == "mm10":
-		bowtie_ref = path1 + "mm10/mm10"
-		gtf = path1 + "mm10/mm10.gtf"
-		refbed = path1 + "mm10/mm10_Ensembl.bed"
-		anno_gtf = path1 + "mm10/Mus_musculus.GRCm38.76_ucsc.gtf"
+		bowtie_ref = config["mm10_bowtie_index"]
+		gtf = config["mm10_gtf"]
+		refbed = config["mm10_ref"]
+		anno_gtf = config["mm10_anno_gtf"]
 	return bowtie_ref, gtf, refbed, anno_gtf
+
+def ConfigSectionMap(section, Config):
+	dict1 = {}
+	options = Config.options(section)
+	for option in options:
+		try:
+			dict1[option] = Config.get(section, option)
+			if dict1[option] == -1:
+				DebugPrint("skip: %s" % option)
+		except:
+			print("exception on %s!" % option)
+			dict1[option] = None
+	return dict1
 
 def rnaseq_process_gsm(paired, gse, gsm, gtf, anno_gtf, bowtie_ref, refbed, threads):
 	if paired:
@@ -150,50 +164,49 @@ def main():
 	parser = argparse.ArgumentParser(description='Pyrnapipe is a pipeline for RNA-seq and ChIP-seq samples from the GEO database\n')
 	parser.add_argument('-g', '--GSE', help='GSE accession for processing. Will try all samples in the accession', required=False)
 	parser.add_argument('-m', '--GSM', help='Individual GSM samples for processing', required=False)
-	parser.add_argument('-d', '--db', help='Optional Sqlite database file which will be updated with sample information.', required=False)
+	#parser.add_argument('-d', '--db', help='Optional Sqlite database file which will be updated with sample information.', required=False)
 	parser.add_argument('-t', '--threads', help='Number of threads to use for alignment, default=1', default=1, required=False)
-	parser.add_argument('-u', action='store_true', help='Will upload files to remote server', required=False)
+	#parser.add_argument('-u', action='store_true', help='Will upload files to remote server', required=False)
 	if len(sys.argv)==1:
 		parser.print_help()
 		sys.exit(1)
 	args = vars(parser.parse_args())
-	
 	gsm_dict = {}
-	
-	path1 = "/home/patrick/Reference_Genomes/pyngspipe_references/"
+
 
 	if args["GSE"]:
 		gsms = downloader.download_gse(args["GSE"])
 		for gsm in sorted(gsms):
 			gse, genome, paired, details, sra, exp_type, name = downloader.download_gsm(gsm)
-			bowtie_ref, gtf, refbed, anno_gtf = get_paths(path1, genome)
+			bowtie_ref, gtf, refbed, anno_gtf = get_paths(config, genome)
 			directory = "{}/{}".format(gse, gsm)
 			if exp_type == "rnaseq":
 				rnaseq_process_gsm(paired, gse, gsm, gtf, anno_gtf, bowtie_ref, refbed, args["threads"])
 			elif exp_type == "chipseq":
 				chipseq_process_gsm(paired, gse, gsm, gtf, bowtie_ref, refbed, args["threads"], genome)
 			
-			if args["db"]:
-				create_gsm_dict(gsm_dict, gse, args["GSM"], details, sra, genome, "tophat2", exp_type, "PATRICK")
-				sqlite_scripts.insert_data(args["db"], gsm_dict) #Updating dictionary
-			if args["u"]:
-				check_dir(directory)
-				upload_folder(directory, gse, gsm)
-				shutil.rmtree(directory)
+		#	if args["db"]:
+		#		create_gsm_dict(gsm_dict, gse, args["GSM"], details, sra, genome, "tophat2", exp_type, "PATRICK")
+		#		sqlite_scripts.insert_data(args["db"], gsm_dict) #Updating dictionary
+			#if args["u"]:
+			#	check_dir(directory)
+			#	upload_folder(directory, gse, gsm)
+			#	shutil.rmtree(directory)
 
 	elif args["GSM"]:
 		gse, genome, paired, details, sra, exp_type, name = downloader.download_gsm(args["GSM"]) 
-		bowtie_ref, gtf, refbed, anno_gtf = get_paths(path1, genome)
+		print gse, genome, paired, details, sra, exp_type, name 
+		bowtie_ref, gtf, refbed, anno_gtf = get_paths(config, genome)
 		directory = "{}/{}".format(gse, args["GSM"])
 		if exp_type == "rnaseq":
 			rnaseq_process_gsm(paired, gse, args["GSM"], gtf, anno_gtf, bowtie_ref, refbed, args["threads"])
 		elif exp_type == "chipseq":
 			chipseq_process_gsm(paired, gse, args["GSM"], gtf, bowtie_ref, refbed, args["threads"], genome)
 
-		if args["db"]:
-			create_gsm_dict(gsm_dict, gse, args["GSM"], details, sra, genome, "tophat2", exp_type, "PATRICK")
-			sqlite_scripts.insert_data(args["db"], gsm_dict)
-		if args["u"]:
-			check_dir(directory)
-			upload_folder(directory, gse, args["GSM"])
-			shutil.rmtree(directory)
+	#	if args["db"]:
+	#		create_gsm_dict(gsm_dict, gse, args["GSM"], details, sra, genome, "tophat2", exp_type, "PATRICK")
+	#		sqlite_scripts.insert_data(args["db"], gsm_dict)
+		#if args["u"]:
+		#	check_dir(directory)
+		#	upload_folder(directory, gse, args["GSM"])
+		#	shutil.rmtree(directory)
