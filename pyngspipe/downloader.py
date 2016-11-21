@@ -21,6 +21,7 @@ def download_gse(gse):
 	subprocess.call(download2, shell=True)
 	with open("{}.soft".format(gse)) as f:
 		for line in f:
+			print line
 			line  = line.rstrip()
 			if line.startswith("!Series_sample_id = "):
 				gsm = re.sub("!Series_sample_id = ", "", line)

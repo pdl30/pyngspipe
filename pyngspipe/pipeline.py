@@ -175,16 +175,17 @@ def main():
 
 
 	if args["GSE"]:
+		print args['GSE']
 		gsms = downloader.download_gse(args["GSE"])
 		for gsm in sorted(gsms):
 			print gsm
 			gse, genome, paired, details, sra, exp_type, name = downloader.download_gsm(gsm)
-			bowtie_ref, gtf, refbed, anno_gtf = get_paths(config, genome)
+		#	bowtie_ref, gtf, refbed, anno_gtf = get_paths(config, genome)
 			directory = "{}/{}".format(gse, gsm)
-			if exp_type == "rnaseq":
-				rnaseq_process_gsm(paired, gse, gsm, gtf, anno_gtf, bowtie_ref, refbed, args["threads"])
-			elif exp_type == "chipseq":
-				chipseq_process_gsm(paired, gse, gsm, gtf, bowtie_ref, refbed, args["threads"], genome)
+	#		if exp_type == "rnaseq":
+	#			rnaseq_process_gsm(paired, gse, gsm, gtf, anno_gtf, bowtie_ref, refbed, args["threads"])
+	#		elif exp_type == "chipseq":
+	#			chipseq_process_gsm(paired, gse, gsm, gtf, bowtie_ref, refbed, args["threads"], genome)
 			
 		#	if args["db"]:
 		#		create_gsm_dict(gsm_dict, gse, args["GSM"], details, sra, genome, "tophat2", exp_type, "PATRICK")
