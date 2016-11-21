@@ -26,7 +26,6 @@ def download_gse(gse):
 				gsm = re.sub("!Series_sample_id = ", "", line)
 				gsm_samples[gsm] = 1
 	os.remove("{}.soft".format(gse))
-	print gsm_samples
 	return gsm_samples
 
 def download_gsm(gsm, download=True):
@@ -35,7 +34,6 @@ def download_gsm(gsm, download=True):
 	subprocess.call(download2, shell=True)
 	f = open("{}.soft".format(gsm), "r")
 	lines = f.readlines()
-	print lines
 	extract_info = ""
 	growth_info = ""
 	os.remove("{}.soft".format(gsm))
@@ -70,7 +68,6 @@ def download_gsm(gsm, download=True):
 			growth_info = line.lstrip("!Sample_growth_protocol_ch1 = ")
 			growth_info = growth_info.rstrip()
 	details = extract_info + growth_info
-	
 	if download:
 		if not os.path.isdir(gse):
 			os.makedirs(gse)
@@ -82,8 +79,9 @@ def download_gsm(gsm, download=True):
 	sra = None
 	gsm_sra = []
 	for line in lines:
+		print line
 		line = line.rstrip()
-		if line.startswith("!Series_supplementary_file"):
+		if line.startswith("!Sample_supplementary_file"):
 			sra_path = line.split("ByExp/sra/")
 			if len(sra_path) > 1:
 				sra = sra_path[1]
