@@ -177,6 +177,7 @@ def main():
 	if args["GSE"]:
 		gsms = downloader.download_gse(args["GSE"])
 		for gsm in sorted(gsms):
+			print gsm
 			gse, genome, paired, details, sra, exp_type, name = downloader.download_gsm(gsm)
 			bowtie_ref, gtf, refbed, anno_gtf = get_paths(config, genome)
 			directory = "{}/{}".format(gse, gsm)
